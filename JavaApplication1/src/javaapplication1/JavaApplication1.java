@@ -27,7 +27,7 @@ public class JavaApplication1 {
     public static int cc=0;
 	//Funcion Principal del codigo
 public static void main(String[] args) {
-        int tamaño= (int) Math.pow(2, 15);
+        int tamaño= (int) Math.pow(2, 5);
         Punto[] x = new Punto[tamaño];
 	//El siguiente loop repite el proceso 5 veces para sacr el promedio
         for(int i=0; i<5; i++) {
