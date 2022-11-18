@@ -5,13 +5,11 @@
  */
 package javaapplication1;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Random;
 
 /**
  *
- * @author German Galvis
+ * @author German Galvis & Aiker
  */
 public class Ac_Link {
 
@@ -24,52 +22,37 @@ public class Ac_Link {
 
     public static void main(String[] args) {
         int tamaño = (int) Math.pow(2, 5);
-        Punto[] x = new Punto[tamaño];
+        LinkedList LPunto = new LinkedList();
+        Random ran = new Random();
         //El siguiente loop repite el proceso 5 veces para sacr el promedio
         for (int i = 0; i < 5; i++) {
             //Este for se asegura de que no hay coordenas repetidas que generen distancia minima de 0
             for (int j = 0; j < tamaño; j++) {
-                int cx = (int) (Math.random() * (101));
-                int cy = (int) (Math.random() * (101));
-                boolean dup = false;
-                for (int z = 0; z < j; z++) {
-                    Punto test = x[z];
-                    int testx = test.getx();
-                    int testy = test.gety();
-                    if ((testx == cx) && (testy == cy)) {
-                        dup = true;
-                        break;
-                    }
-                }
-                if (dup == true) {
-                    while (dup == true) {
-                        int desdup = (int) (Math.random() * (101));
-                        int desdup1 = (int) (Math.random() * (10) + 1);
-                        cx = cx - (desdup * desdup1);
-                        cy = cy + (desdup * desdup1);
-                        boolean dup1 = false;
-                        for (int z = 0; z < j; z++) {
-                            Punto test = x[z];
-                            int testx = test.getx();
-                            int testy = test.gety();
-                            if ((testx == cx) && (testy == cy)) {
-                                dup1 = true;
-                                break;
-                            }
-                        }
-                        if (dup1 == false) {
-                            dup = false;
-                        }
-                    }
-                    x[j] = new Punto(cx, cy);
+
+                int cx = ran.nextInt();
+                int cy = ran.nextInt();
+                int inc = 0;
+                boolean unic = true;
+                if (LPunto.head == null) {
+                    Punto test = new Punto(cx, cy);
+                    LPunto.insert(LPunto, test);
                 } else {
-                    x[j] = new Punto(cx, cy);
+                    while (unic) {
+                        cx = cx + inc;
+                        cy = cy + inc;
+                        Punto test = new Punto(cx, cy);
+                        unic = LPunto.exist(LPunto.head, test);
+                        inc++;
+                        if (unic == false) {
+                            LPunto.insert(LPunto, test);
+                        }
+                    }
                 }
             }
             cc = 0;
             //Se toma el tiempo de inicio
             long start = System.nanoTime();
-            float[] ans = cercano(x, tamaño);
+            float[] ans = cercano(LPunto, tamaño);
             long end = System.nanoTime();
             //Se toma el tiempo de final y se calcula el tiempo
             long time = end - start;
@@ -88,20 +71,21 @@ public class Ac_Link {
     }
     //Calcula de forma interativa la distancia minima
 
-    public static float[] ClosestBrute(int N, Punto P[]) {
+    public static float[] ClosestBrute(int N, LinkedList.Node head) {
         float min = Float.MAX_VALUE;
         float Minactual = 0;
         float[] res = new float[5];
-        for (int i = 0; i < N; ++i) {
-            for (int j = i + 1; j < N; ++j) {
-
-                Minactual = distancia(P[i], P[j]);
+        LinkedList.Node i = head;
+        LinkedList.Node j = head.next;
+        while (i.next != null) {
+            while (j.next != null) {
+                Minactual = distancia(i.data, j.data);
                 if (Minactual < min) {
                     cc++;
-                    int pix = P[i].getx();
-                    int piy = P[i].gety();
-                    int pjx = P[j].getx();
-                    int pjy = P[j].gety();
+                    int pix = i.data.getx();
+                    int piy = i.data.gety();
+                    int pjx = j.data.getx();
+                    int pjy = j.data.gety();
                     min = Minactual;
                     res[0] = min;
                     res[1] = pix;
@@ -110,7 +94,10 @@ public class Ac_Link {
                     res[4] = pjy;
 
                 }
+
+                j = j.next;
             }
+            i = i.next;
         }
         return res;
 
@@ -126,75 +113,53 @@ public class Ac_Link {
         return (float) dist;
     }
 
-    public static float[] stripClosest(Punto[] lado, int tam, float d) {
+    public static float[] stripClosest(LinkedList list, int tam, float d) {
         float min = d;
         float[] res = new float[5];
-        Arrays.sort(lado, 0, tam, new ComparadorY());
-
-        for (int i = 0; i < tam; ++i) {
-            for (int j = i + 1; j < tam && (lado[j].gety() - lado[i].gety()) < min; ++j) {
-                if (distancia(lado[i], lado[j]) < min) {
-                    cc++;
-                    int lix = lado[i].getx();
-                    int liy = lado[i].gety();
-                    int ljx = lado[j].getx();
-                    int ljy = lado[j].gety();
-                    min = distancia(lado[i], lado[j]);
-                    res[0] = min;
-                    res[1] = lix;
-                    res[2] = liy;
-                    res[3] = ljx;
-                    res[4] = ljy;
-                }
+        list.sortList();
+        LinkedList.Node i = list.head;
+        while (i != null) {
+            LinkedList.Node j = i.next;
+            while (j != null && (j.data.gety() - i.data.gety() < min)) {
+                cc++;
+                int lix = i.data.getx();
+                int liy = i.data.gety();
+                int ljx = j.data.getx();
+                int ljy = j.data.getx();
+                min = distancia(i.data, j.data);
+                res[0] = min;
+                res[1] = lix;
+                res[2] = liy;
+                res[3] = ljx;
+                res[4] = ljy;
+                j = j.next;
             }
+            i = i.next;
         }
 
         return res;
     }
 //Comparadores de puntos
 
-    static class ComparadorY implements Comparator<Punto> {
 
-        @Override
-        public int compare(Punto pointA, Punto pointB) {
-
-            int pAy = pointA.gety();
-            int pBy = pointB.gety();
-            int x = Integer.compare(pAy, pBy);
-            cc++;
-            return x;
-        }
-
-    }
-
-    static class ComparadorX implements Comparator<Punto> {
-
-        @Override
-        public int compare(Punto pointA, Punto pointB) {
-            int pAx = pointA.getx();
-            int pBx = pointB.getx();
-            cc++;
-            return Integer.compare(pAx, pBx);
-        }
-
-    }
 //Funcion Recursiva para encontrar los pares cercanos
 
-    public static float[] cercanoRec(Punto[] P,
+    public static float[] cercanoRec(LinkedList list,
             int startIndex,
             int endIndex) {
         float[] res = new float[5];
         float[] d = new float[5];
+        LinkedList.Node head = list.head;
         if ((endIndex - startIndex) <= 3) {
             cc++;
-            return ClosestBrute(endIndex, P);
+            return ClosestBrute(endIndex, head);
         }
 
         int mid = startIndex + (endIndex - startIndex) / 2;
-        Punto PuntoMedio = P[mid];
+        Punto PuntoMedio = middleNode(head);
 
-        float[] Izq = cercanoRec(P, startIndex, mid);
-        float[] Der = cercanoRec(P, mid, endIndex);
+        float[] Izq = cercanoRec(list, startIndex, mid);
+        float[] Der = cercanoRec(list, mid, endIndex);
 
         if (Izq[0] < Der[0]) {
             cc++;
@@ -210,16 +175,27 @@ public class Ac_Link {
         }
         d[0] = Math.min(Izq[0], Der[0]);
 
-        Punto[] strip = new Punto[endIndex];
-        int j = 0;
-        for (int i = 0; i < endIndex; i++) {
-            if (Math.abs(P[i].getx() - PuntoMedio.getx()) < d[0]) {
-                cc++;
-                strip[j] = P[i];
-                j++;
+        //Punto[] strip = new Punto[endIndex];
+        LinkedList strip = new LinkedList();
+
+        LinkedList.Node i = head;
+        LinkedList.Node j = head.next;
+        int cont = 0;
+        while (i != null) {
+            while (j != null) {
+                if (Math.abs(i.data.getx() - PuntoMedio.getx()) < d[0]) {
+                    cc++;
+
+                    strip.insert(strip, i.data);
+                    
+                    cont++;
+                }
+                j = j.next;
+
             }
+            i = i.next;
         }
-        float[] ans = stripClosest(strip, j, d[0]);
+        float[] ans = stripClosest(strip, cont, d[0]);
         if (ans[0] == 0.0) {
             cc++;
             float x = d[0];
@@ -250,9 +226,9 @@ public class Ac_Link {
 
     }
 
-    public static float[] cercano(Punto[] P, int n) {
-        Arrays.sort(P, 0, n, new ComparadorX());
-        return cercanoRec(P, 0, n);
+    public static float[] cercano(LinkedList list, int n) {
+        list.sortList();
+        return cercanoRec(list, 0, n);
     }
 
     public static Punto[] getPoints(Punto[] points) {
@@ -290,5 +266,21 @@ public class Ac_Link {
         }
         double sumix = (double) sum;
         return sumix / array.length;
+    }
+
+    static Punto middleNode(LinkedList.Node head) {
+        int l = 0;
+        LinkedList.Node p = head;
+        while (p != null) {
+            p = p.next;
+            l = l + 1;
+        }
+        p = head;
+        int c = 0;
+        while (c < l / 2) {
+            p = p.next;
+            c = c + 1;
+        }
+        return p.data;
     }
 }
